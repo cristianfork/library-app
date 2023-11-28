@@ -1,0 +1,82 @@
+version: '3'
+services:
+
+  appcustomers:
+    container_name: appcustomers
+    restart: on-failure
+    build: ./Customers/AppCustomers
+    command: sh -c "sleep 80s ; python3 ./customerapp.py"
+    ports:
+      - "5000:5000"
+    depends_on:
+      - dbcustomers
+    networks:
+      - customers-network
+
+  dbcustomers:
+    container_name: dbcustomers
+    build: ./Customers/DbCustomers
+    environment:
+      MYSQL_ROOT_PASSWORD: Password123!
+      MYSQL_DATABASE: customers
+      MYSQL_USER: sa
+      MYSQL_PASSWORD: Password123!
+    networks:
+      - customers-network
+
+  dbbooks:
+    container_name: dbbooks
+    build: ./Books/DbBooks
+    environment:
+      MYSQL_ROOT_PASSWORD: Password123!
+      MYSQL_DATABASE: books
+      MYSQL_USER: sa
+      MYSQL_PASSWORD: Password123!
+    ports:
+      - "3305:3306"
+    networks:
+      - books-network
+
+  appbooks:
+    container_name: appbooks
+    build: ./Books/AppBooks
+    restart: on-failure
+    command: sh -c "sleep 80s ; python3 ./bookapp.py"
+    ports:
+      - "4999:5000"
+    depends_on:
+      - dbbooks
+    networks:
+      - books-network
+
+  couchserver:
+    image: couchdb
+    restart: on-failure
+    ports:
+      - "5983:5984"
+    environment:
+      - COUCHDB_USER=admin
+      - COUCHDB_PASSWORD=Password123!
+    volumes:
+        - ./dbdata:/opt/couchdb/data
+    networks:
+      - borrowings-network
+
+  appborrowings:
+    build: ./Borrowing
+    command: sh -c "sleep 80s ; python3 ./borrowingapp.py"
+    restart: on-failure
+    depends_on:
+      - couchserver
+    ports:
+      - 4998:5000
+    networks:
+      - borrowings-network
+
+networks:
+  customers-network:
+    driver: bridge
+  books-network:
+    driver: bridge
+  borrowings-network:
+    driver: bridge

@@ -6,7 +6,7 @@ on:
       - "main"
 
 jobs:
-  build:
+  buildbookapp:
     runs-on: ubuntu-latest
     steps:
       -
@@ -26,6 +26,102 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: ./Dockerfile
+          file: Books/AppBooks/
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/clockbox:latest
+  
+  buildbookdb:
+    runs-on: ubuntu-latest
+    steps:
+      -
+        name: Checkout
+        uses: actions/checkout@v4
+      -
+        name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      -
+        name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      -
+        name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: Books/DbBooks/
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/clockbox:latest
+  
+  buildborrowing:
+    runs-on: ubuntu-latest
+    steps:
+      -
+        name: Checkout
+        uses: actions/checkout@v4
+      -
+        name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      -
+        name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      -
+        name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: Borrowing/
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/clockbox:latest
+    
+  buildcustomerapp:
+    runs-on: ubuntu-latest
+    steps:
+      -
+        name: Checkout
+        uses: actions/checkout@v4
+      -
+        name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      -
+        name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      -
+        name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: Customers/AppCustomers/
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/clockbox:latest
+    
+  buildcustomerdb:
+    runs-on: ubuntu-latest
+    steps:
+      -
+        name: Checkout
+        uses: actions/checkout@v4
+      -
+        name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      -
+        name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      -
+        name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: Customers/DbCustomers/
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/clockbox:latest

@@ -25,8 +25,7 @@ jobs:
         name: Build and push
         uses: docker/build-push-action@v5
         with:
-          context: .
-          file: Books/AppBooks/
+          context: Books/AppBooks/
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/clockbox:latest
   
@@ -49,8 +48,7 @@ jobs:
         name: Build and push
         uses: docker/build-push-action@v5
         with:
-          context: .
-          file: Books/DbBooks/
+          context: Books/DbBooks/
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/clockbox:latest
   
@@ -73,8 +71,7 @@ jobs:
         name: Build and push
         uses: docker/build-push-action@v5
         with:
-          context: .
-          file: Borrowing/
+          context: Borrowing/
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/clockbox:latest
     
@@ -97,8 +94,7 @@ jobs:
         name: Build and push
         uses: docker/build-push-action@v5
         with:
-          context: .
-          file: Customers/AppCustomers/
+          context: Customers/AppCustomers/
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/clockbox:latest
     
@@ -121,7 +117,6 @@ jobs:
         name: Build and push
         uses: docker/build-push-action@v5
         with:
-          context: .
-          file: Customers/DbCustomers/
+          context: Customers/DbCustomers/
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/clockbox:latest

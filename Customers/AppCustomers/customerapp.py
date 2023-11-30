@@ -1,7 +1,12 @@
 from flask import Flask, request, jsonify
 import mysql.connector
+import pika
+import logging
 
 app = Flask(__name__)
+
+logging.basicConfig(level=logging.INFO, filemode="w", format="%(asctime)s - %(levelname)s - %(message)s   ")
+
 
 conn = mysql.connector.connect(
     user='sa',
@@ -10,6 +15,12 @@ conn = mysql.connector.connect(
     database='customers')
 
 cursor = conn.cursor()
+logging.info("Connessione al DB")
+
+connection = pika.BlockingConnection(pika.ConnectionParameters('rabbit'))
+channel = connection.channel()
+
+channel.queue_declare(queue='global_queue')
 
 @app.route('/get')
 def get_records():
@@ -39,6 +50,10 @@ def add_record():
     cursor.execute(f'''INSERT INTO customers (ID, Name, Surname, Mail) VALUES ('{id}','{name}' , '{surname}', '{mail}')''' )
 
     conn.commit()
+    
+    message = json.dumps(data)
+    channel.basic_publish(exchange='', routing_key='global_queue', body=message)
+    
     return 'success'
 
 
@@ -54,6 +69,10 @@ def update_record(id):
     cursor.execute(f'''UPDATE customers SET Name = '{name}', Surname = '{surname}', Mail = '{mail}' WHERE ID = '{id}' ''')
 
     conn.commit()
+
+    message = json.dumps(data)
+    channel.basic_publish(exchange='', routing_key='global_queue', body=message)
+    
     return 'success'
 
 
@@ -62,6 +81,10 @@ def delete_record(id):
     
     cursor.execute(f"DELETE FROM customers WHERE id = '{id}'")
     conn.commit()
+
+    deleted_data = {'id': id}
+    message = json.dumps(deleted_data)
+    channel.basic_publish(exchange='', routing_key='global_queue', body=message)
 
     return jsonify({'id': id})
 

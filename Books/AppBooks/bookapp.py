@@ -6,7 +6,7 @@ import logging
 
 app = Flask(__name__)
 
-logging.basicConfig(level=logging.INFO, filename="Libri.log", filemode="w", format="%(asctime)s - %(levelname)s - %(message)s   ")
+logging.basicConfig(level=logging.INFO, filemode="w", format="%(asctime)s - %(levelname)s - %(message)s   ")
 
 conn = mysql.connector.connect(
     user='sa',

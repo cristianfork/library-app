@@ -5,7 +5,7 @@ services:
     container_name: appcustomers
     restart: on-failure
     build: ./Customers/AppCustomers
-    command: sh -c "sleep 80s ; python3 ./customerapp.py"
+    command: sh -c "sleep 20s ; python3 ./customerapp.py"
     ports:
       - "5000:5000"
     depends_on:
@@ -36,18 +36,20 @@ services:
       - "3305:3306"
     networks:
       - books-network
+      - rabbitmq_go_net
 
   appbooks:
     container_name: appbooks
     build: ./Books/AppBooks
     restart: on-failure
-    command: sh -c "sleep 80s ; python3 ./bookapp.py"
+    command: sh -c "sleep 20s ; python3 ./bookapp.py"
     ports:
       - "4999:5000"
     depends_on:
       - dbbooks
     networks:
       - books-network
+      - rabbitmq_go_net
 
   couchserver:
     image: couchdb
@@ -64,7 +66,7 @@ services:
 
   appborrowings:
     build: ./Borrowing
-    command: sh -c "sleep 80s ; python3 ./borrowingapp.py"
+    command: sh -c "sleep 20s ; python3 ./borrowingapp.py"
     restart: on-failure
     depends_on:
       - couchserver
@@ -73,10 +75,38 @@ services:
     networks:
       - borrowings-network
 
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: 'rabbitmq'
+    ports:
+        - 5672:5672
+        - 15672:15672
+    volumes:
+        - ./rabbitmq-data/:/var/lib/rabbitmq/
+        - ./rabbitmq-logs/:/var/log/rabbitmq
+    networks:
+        - rabbitmq_go_net
+        - books-network
+
+
+  notificationservice:
+    container_name: notificationservice
+    command: sh -c "sleep 40s ; python3 ./receive.py"
+    build: ./Notification
+    depends_on:
+      - rabbitmq
+    networks:
+      - rabbitmq_go_net
+      - books-network
+
+
+
 networks:
   customers-network:
     driver: bridge
   books-network:
     driver: bridge
   borrowings-network:
+    driver: bridge
+  rabbitmq_go_net:
     driver: bridge

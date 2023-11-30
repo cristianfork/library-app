@@ -1,5 +1,7 @@
 from flask import Flask, request, jsonify
 import mysql.connector
+import pika
+import json
 
 app = Flask(__name__)
 
@@ -11,10 +13,15 @@ conn = mysql.connector.connect(
 
 cursor = conn.cursor()
 
+# connect to RabbitMQ and declare the queue
+connection = pika.BlockingConnection(pika.ConnectionParameters('rabbit'))
+channel = connection.channel()
+
+channel.queue_declare(queue='global_queue')
+
 
 @app.route('/get')
 def get_records():
-
     cursor.execute('SELECT * FROM books')
     result = cursor.fetchall()
     return jsonify(result)
@@ -24,7 +31,6 @@ def get_records():
 def get_data_by_id(id):
     cursor.execute(f"SELECT * FROM books WHERE id = '{id}'")
     result = cursor.fetchone()
-
     return jsonify(result)
 
 
@@ -37,24 +43,36 @@ def add_record():
     author = data.get('author')
     copies = data.get('copies')
 
-    cursor.execute(f'''INSERT INTO books (id, title, author, copies) VALUES ('{id}','{title}' , '{author}', '{copies}')''' )
+    cursor.execute(
+        f'''INSERT INTO books (id, title, author, copies) VALUES ('{id}','{title}' , '{author}', '{copies}')''')
 
     conn.commit()
+
+    # RabbitMQ
+    message = json.dumps(data)
+    channel.basic_publish(exchange='', routing_key='global_queue', body=message)
+
     return jsonify(data)
 
 
 @app.route('/update/<int:id>', methods=['PUT'])
 def update_record(id):
     data = request.get_json()
-    
+
     id = data.get('id')
     title = data.get('title')
     author = data.get('author')
     copies = data.get('copies')
 
-    cursor.execute(f'''UPDATE books SET title = '{title}', author = '{author}', copies = '{copies}' WHERE id = '{id}' ''')
+    cursor.execute(
+        f'''UPDATE books SET title = '{title}', author = '{author}', copies = '{copies}' WHERE id = '{id}' ''')
 
     conn.commit()
+
+    # RabbitMQ
+    message = json.dumps(data)
+    channel.basic_publish(exchange='', routing_key='global_queue', body=message)
+
     return jsonify(data)
 
 
@@ -62,6 +80,12 @@ def update_record(id):
 def delete_record(id):
     cursor.execute(f"DELETE FROM books WHERE id = '{id}'")
     conn.commit()
+
+    # RabbitMQ
+    deleted_data = {'id': id}
+    message = json.dumps(deleted_data)
+    channel.basic_publish(exchange='', routing_key='global_queue', body=message)
+
     return jsonify({'id': id})
 
 

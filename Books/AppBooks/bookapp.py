@@ -2,8 +2,11 @@ from flask import Flask, request, jsonify
 import mysql.connector
 import pika
 import json
+import logging
 
 app = Flask(__name__)
+
+logging.basicConfig(level=logging.INFO, filename="Libri.log", filemode="w", format="%(asctime)s - %(levelname)s - %(message)s   ")
 
 conn = mysql.connector.connect(
     user='sa',
@@ -12,6 +15,7 @@ conn = mysql.connector.connect(
     database='books')
 
 cursor = conn.cursor()
+logging.info("Connessione al DB")
 
 # connect to RabbitMQ and declare the queue
 connection = pika.BlockingConnection(pika.ConnectionParameters('rabbit'))
